@@ -25,3 +25,5 @@ answers.md
 *.njsproj
 *.sln
 *.sw?
+
+.opencode/
