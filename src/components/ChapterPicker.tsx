@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Item = {
   name: string;
@@ -24,7 +24,6 @@ export default function ChapterPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
-  const rootRef = useRef<HTMLDivElement>(null);
 
   const selected =
     value === "全部"
@@ -40,18 +39,14 @@ export default function ChapterPicker({
 
   useEffect(() => {
     if (!open) return;
-    function onDown(e: PointerEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
-    window.addEventListener("pointerdown", onDown);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("pointerdown", onDown);
+      document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
   }, [open ]);
@@ -76,7 +71,7 @@ export default function ChapterPicker({
       >
         <span className="chapter-top">
           <span className="chapter-name">{label}</span>
-          <span className="chapter-count">{count}</span>
+          <span className="chapter-count">{count} 張</span>
         </span>
         <span className="chapter-sub">
           <span className="chapter-bar" aria-hidden="true">
@@ -99,40 +94,60 @@ export default function ChapterPicker({
   }
 
   return (
-    <div className="chapter-picker" ref={rootRef}>
+    <div className="chapter-picker">
+      <p className="chapter-current" aria-live="polite">
+        <span className="chapter-name">{selected.name}</span>
+        <span className="chapter-current-sub">
+          {selected.count} 張 · 已學 {selected.learned} · 待複習 {selected.due}
+        </span>
+      </p>
       <button
         type="button"
-        className="chapter-trigger"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        className="chapter-open-btn"
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
       >
-        <span className="chapter-trigger-text">
-          <span className="chapter-name">{selected.name}</span>
-          <span className="chapter-trigger-sub">
-            {selected.count} 張 · 已學 {selected.learned}
-          </span>
-        </span>
-        <span className="chapter-chev" aria-hidden="true">
-          {open ? "▴" : "▾"}
-        </span>
+        選擇篇目
       </button>
       {open && (
-        <div className="chapter-menu">
-          <input
-            className="chapter-filter"
-            type="search"
-            placeholder="篩選篇目"
-            aria-label="篩選篇目"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-          <div className="chapter-list" role="listbox" aria-label="篇目選擇">
-            {row("全部篇目", totalCount, totalLearned, totalDue, true)}
-            {visible.map((c) => row(c.name, c.count, c.learned, c.due, false))}
-            {visible.length === 0 && (
-              <p className="chapter-none">沒有符合的篇目</p>
-            )}
+        <div
+          className="chapter-overlay"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="chapter-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="選擇篇目"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="chapter-dialog-head">
+              <h3>選擇篇目</h3>
+              <button
+                type="button"
+                className="chapter-close"
+                aria-label="關閉"
+                onClick={() => setOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <input
+              className="chapter-filter"
+              type="search"
+              placeholder="篩選篇目"
+              aria-label="篩選篇目"
+              autoFocus
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+            <div className="chapter-list" role="listbox" aria-label="篇目選擇">
+              {row("全部篇目", totalCount, totalLearned, totalDue, true)}
+              {visible.map((c) => row(c.name, c.count, c.learned, c.due, false))}
+              {visible.length === 0 && (
+                <p className="chapter-none">沒有符合的篇目</p>
+              )}
+            </div>
           </div>
         </div>
       )}
