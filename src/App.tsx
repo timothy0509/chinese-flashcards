@@ -25,7 +25,7 @@ const GRADES = [
 ];
 
 export default function App() {
-  const [chapter, setChapter] = useState("全部");
+  const [chapters, setChapters] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<Mode>("all");
   const [order, setOrder] = useState<string[]>(() =>
@@ -51,7 +51,7 @@ export default function App() {
     return order
       .map((id) => byId.get(id))
       .filter((c): c is Card => c !== undefined)
-      .filter((c) => chapter === "全部" || c.chapter === chapter)
+      .filter((c) => chapters.length === 0 || chapters.includes(c.chapter))
       .filter(
         (c) =>
           q === "" ||
@@ -61,7 +61,7 @@ export default function App() {
       )
       .filter((c) => mode === "all" || isDue(progress[c.id], now));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order, chapter, query, mode, progress]);
+  }, [order, chapters, query, mode, progress]);
 
   const safePos = deck.length === 0 ? 0 : Math.min(pos, deck.length - 1);
   const current = deck[safePos];
@@ -70,13 +70,13 @@ export default function App() {
     const q = query.trim();
     return cards.filter(
       (c) =>
-        (chapter === "全部" || c.chapter === chapter) &&
+        (chapters.length === 0 || chapters.includes(c.chapter)) &&
         (q === "" ||
           c.sentence.includes(q) ||
           c.term.includes(q) ||
           c.answer.includes(q)),
     );
-  }, [chapter, query]);
+  }, [chapters, query]);
 
   const learned = filtered.filter((c) => progress[c.id]?.last != null).length;
   const dueCount = filtered.filter((c) => isDue(progress[c.id], now)).length;
@@ -196,9 +196,9 @@ export default function App() {
           <section className="panel">
             <h2>篇目</h2>
             <ChapterPicker
-              value={chapter}
+              value={chapters}
               onChange={(v) => {
-                setChapter(v);
+                setChapters(v);
                 setPos(0);
                 setFlipped(false);
               }}

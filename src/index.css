@@ -275,7 +275,7 @@ header h1 {
   max-height: min(86vh, 720px);
   display: grid;
   gap: 16px;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   background: var(--card);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
@@ -436,6 +436,74 @@ header h1 {
   flex: none;
   font-size: 0.72rem;
   color: var(--faint);
+}
+
+.chapter-check {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--accent-deep);
+  background: transparent;
+}
+
+.chapter-item.selected .chapter-check {
+  border-color: var(--accent);
+  background: rgba(163, 59, 46, 0.12);
+}
+
+.chapter-item.chapter-group {
+  background: var(--bg-soft);
+}
+
+@media (min-width: 700px) {
+  .chapter-item.chapter-group {
+    grid-column: 1 / -1;
+  }
+}
+
+.chapter-item.partial {
+  border-style: dashed;
+}
+
+.chapter-dialog-count {
+  margin-left: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.chapter-current-list {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chapter-dialog-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chapter-dialog-foot button {
+  min-height: 48px;
+}
+
+.chapter-confirm {
+  flex: 1;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 600;
 }
 
 .mode-row {
@@ -977,7 +1045,8 @@ button {
   }
 
   .mode-row button.active,
-  .nav button.primary {
+  .nav button.primary,
+  .chapter-confirm {
     background: var(--accent);
     border-color: var(--accent);
     color: #231210;
