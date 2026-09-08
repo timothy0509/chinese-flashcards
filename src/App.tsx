@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import ChapterPicker from "./components/ChapterPicker";
 import Flashcard from "./components/Flashcard";
 import cardsData from "./data/cards.json";
 import chaptersData from "./data/chapters.json";
@@ -82,6 +83,22 @@ export default function App() {
   const mastered = filtered.filter((c) => isMastered(progress[c.id])).length;
   const pct =
     filtered.length === 0 ? 0 : Math.round((learned / filtered.length) * 100);
+
+  const chapterItems = useMemo(
+    () =>
+      chaptersData.map((ch) => {
+        const list = cards.filter((c) => c.chapter === ch.name);
+        return {
+          name: ch.name,
+          count: ch.count,
+          learned: list.filter((c) => progress[c.id]?.last != null).length,
+          due: list.filter((c) => isDue(progress[c.id], Date.now())).length,
+        };
+      }),
+    [progress],
+  );
+  const totalLearned = cards.filter((c) => progress[c.id]?.last != null).length;
+  const totalDue = cards.filter((c) => isDue(progress[c.id], now)).length;
 
   function go(delta: number) {
     if (deck.length === 0) return;
@@ -177,26 +194,23 @@ export default function App() {
       <div className="layout">
         <aside className="side" aria-label="篩選與進度">
           <section className="panel">
-            <h2>篩選</h2>
-            <label className="field">
-              <span className="field-label">篇目</span>
-              <select
-                value={chapter}
-                onChange={(e) => {
-                  setChapter(e.target.value);
-                  setPos(0);
-                  setFlipped(false);
-                }}
-                aria-label="章節篩選"
-              >
-                <option value="全部">全部篇目</option>
-                {chaptersData.map((c) => (
-                  <option key={c.name} value={c.name}>
-                    {c.name}（{c.count}）
-                  </option>
-                ))}
-              </select>
-            </label>
+            <h2>篇目</h2>
+            <ChapterPicker
+              value={chapter}
+              onChange={(v) => {
+                setChapter(v);
+                setPos(0);
+                setFlipped(false);
+              }}
+              items={chapterItems}
+              totalCount={cards.length}
+              totalLearned={totalLearned}
+              totalDue={totalDue}
+            />
+          </section>
+
+          <section className="panel">
+            <h2>搜尋與模式</h2>
             <label className="field">
               <span className="field-label">搜尋</span>
               <input

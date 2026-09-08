@@ -208,7 +208,6 @@ header h1 {
   letter-spacing: 0.08em;
 }
 
-.field select,
 .field input {
   appearance: none;
   width: 100%;
@@ -220,26 +219,104 @@ header h1 {
   color: var(--ink);
 }
 
-.field select {
-  padding-right: 38px;
-  cursor: pointer;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position:
-    calc(100% - 20px) 50%,
-    calc(100% - 14px) 50%;
-  background-size: 6px 6px;
-  background-repeat: no-repeat;
-}
-
 .field input::placeholder {
   color: var(--faint);
 }
 
-.field select:hover,
 .field input:hover {
   border-color: var(--muted);
+}
+
+/* chapter picker */
+
+.chapter-list {
+  display: grid;
+  gap: 8px;
+}
+
+.chapter-item {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.chapter-item:hover {
+  border-color: var(--muted);
+  box-shadow: var(--shadow);
+}
+
+.chapter-item.selected {
+  border-color: var(--accent);
+  background: rgba(163, 59, 46, 0.06);
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow);
+}
+
+.chapter-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chapter-name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapter-item.selected .chapter-name {
+  color: var(--accent-deep);
+}
+
+.chapter-count {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 9px;
+}
+
+.chapter-item.selected .chapter-count {
+  color: var(--accent-deep);
+  border-color: rgba(163, 59, 46, 0.35);
+}
+
+.chapter-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chapter-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.chapter-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+  border-radius: 99px;
+}
+
+.chapter-stat {
+  flex: none;
+  font-size: 0.72rem;
+  color: var(--faint);
 }
 
 .mode-row {
@@ -763,11 +840,15 @@ button {
     background: linear-gradient(180deg, rgba(224, 138, 122, 0.08), transparent 140px), var(--card);
   }
 
-  .field select,
   .field input,
+  .chapter-item,
   button {
     background: #2e2a27;
     color: var(--ink);
+  }
+
+  .chapter-item.selected {
+    background: rgba(224, 138, 122, 0.1);
   }
 
   .stat {
