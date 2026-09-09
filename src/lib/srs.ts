@@ -22,7 +22,7 @@ export function initialProgress(): Progress {
 }
 
 export function isDue(p: Progress | undefined, now: number): boolean {
-  if (!p || p.last === null) return true;
+  if (!p || p.last === null) return false;
   return p.due <= now;
 }
 

@@ -26,9 +26,9 @@ describe("initialProgress", () => {
 });
 
 describe("isDue", () => {
-  it("treats unseen cards as due", () => {
-    expect(isDue(undefined, 1000)).toBe(true);
-    expect(isDue(progress(), 1000)).toBe(true);
+  it("treats unseen cards as not due", () => {
+    expect(isDue(undefined, 1000)).toBe(false);
+    expect(isDue(progress(), 1000)).toBe(false);
   });
 
   it("compares due against now", () => {
