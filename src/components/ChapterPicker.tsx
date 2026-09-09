@@ -138,30 +138,52 @@ export default function ChapterPicker({
     });
   }
 
-  function groupRow(g: { name: string; members: string[] }) {
-    const parts = items.filter((c) => g.members.includes(c.name));
+  function groupBlock(g: { name: string; members: string[] }, only?: string[]) {
+    const wanted = only ?? g.members;
+    const parts = items.filter((c) => wanted.includes(c.name));
+    if (parts.length === 0) return null;
     const all = g.members.every((m) => draft.includes(m));
-    const some = !all && g.members.some((m) => draft.includes(m));
-    const count = parts.reduce((a, c) => a + c.count, 0);
-    const learned = parts.reduce((a, c) => a + c.learned, 0);
-    const due = parts.reduce((a, c) => a + c.due, 0);
+    const selectedCount = g.members.filter((m) => draft.includes(m)).length;
+    const some = selectedCount > 0 && !all;
+    const count = items
+      .filter((c) => g.members.includes(c.name))
+      .reduce((a, c) => a + c.count, 0);
+    const learned = items
+      .filter((c) => g.members.includes(c.name))
+      .reduce((a, c) => a + c.learned, 0);
+    const due = items
+      .filter((c) => g.members.includes(c.name))
+      .reduce((a, c) => a + c.due, 0);
     return (
-      <button
+      <section
         key={g.name}
-        type="button"
-        role="option"
-        aria-selected={all}
-        className={`chapter-item chapter-group${all ? " selected" : ""}${some ? " partial" : ""}`}
-        onClick={() => toggleGroup(g.members)}
+        className={`chapter-group-block${all ? " selected" : ""}${some ? " partial" : ""}`}
+        aria-label={g.name}
       >
-        <span className="chapter-top">
+        <button
+          type="button"
+          role="option"
+          aria-selected={all}
+          className="chapter-group-head"
+          onClick={() => toggleGroup(g.members)}
+        >
           <span className="chapter-check" aria-hidden="true">
             {all ? "✓" : some ? "–" : ""}
           </span>
-          <span className="chapter-name">{g.name}（全選）</span>
+          <span className="chapter-group-title">
+            <span className="chapter-name">{g.name}</span>
+            <span className="chapter-group-meta">
+              合集 · {g.members.length} 篇 ·{" "}
+              {all
+                ? "全選中"
+                : some
+                  ? `已選 ${selectedCount}/${g.members.length}`
+                  : "全選"}
+            </span>
+          </span>
           <span className="chapter-count">{count} 張</span>
-        </span>
-        <span className="chapter-sub">
+        </button>
+        <span className="chapter-sub chapter-group-sub">
           <span className="chapter-bar" aria-hidden="true">
             <span
               className="chapter-fill"
@@ -177,11 +199,14 @@ export default function ChapterPicker({
             已學 {learned} · 待複習 {due}
           </span>
         </span>
-      </button>
+        <div className="chapter-group-children">
+          {parts.map((c) => row(c, true))}
+        </div>
+      </section>
     );
   }
 
-  function row(c: Item) {
+  function row(c: Item, nested = false) {
     const checked = draft.includes(c.name);
     return (
       <button
@@ -189,7 +214,7 @@ export default function ChapterPicker({
         type="button"
         role="option"
         aria-selected={checked}
-        className={`chapter-item${checked ? " selected" : ""}`}
+        className={`chapter-item${checked ? " selected" : ""}${nested ? " nested" : ""}`}
         onClick={() => toggle(c.name)}
       >
         <span className="chapter-top">
@@ -298,9 +323,12 @@ export default function ChapterPicker({
                         const g = GROUPS.find((gr) =>
                           gr.members.includes(c.name),
                         );
-                        if (g && !seen.has(g.name)) {
-                          seen.add(g.name);
-                          nodes.push(groupRow(g));
+                        if (g) {
+                          if (!seen.has(g.name)) {
+                            seen.add(g.name);
+                            nodes.push(groupBlock(g));
+                          }
+                          continue;
                         }
                         nodes.push(row(c));
                       }
@@ -308,12 +336,24 @@ export default function ChapterPicker({
                     })()
                   : (() => {
                       const nodes: ReactNode[] = [];
+                      const added = new Set<string>();
                       for (const g of visibleGroups) {
+                        const matching = g.members.filter((m) =>
+                          items.some(
+                            (c) => c.name === m && c.name.includes(q),
+                          ),
+                        );
                         if (g.name.includes(q)) {
-                          nodes.push(groupRow(g));
+                          nodes.push(groupBlock(g));
+                        } else if (matching.length > 0) {
+                          nodes.push(groupBlock(g, matching));
                         }
+                        for (const m of g.members) added.add(m);
+                        added.add(g.name);
                       }
-                      for (const c of visible) nodes.push(row(c));
+                      for (const c of visible) {
+                        if (!added.has(c.name)) nodes.push(row(c));
+                      }
                       return nodes;
                     })()}
                 {visible.length === 0 && visibleGroups.length === 0 && (
