@@ -362,7 +362,13 @@ export default function App() {
             </>
           ) : (
             <div className="empty">
-              <p>這組沒有待複習的卡，全部搞定。</p>
+              <p>
+                {filtered.length === 0
+                  ? "沒有符合的卡，換個篩選條件試試。"
+                  : learned === 0
+                    ? "還沒開始學，去全部瀏覽刷第一輪吧。"
+                    : "這組沒有待複習的卡，全部搞定。"}
+              </p>
               <button
                 type="button"
                 onClick={() => {
