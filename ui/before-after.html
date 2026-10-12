@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>文言字詞卡 — UI before / after</title>
+<style>
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, "Noto Sans TC", sans-serif;
+    color: var(--foreground, #33302a);
+    padding: 8px 0 24px;
+  }
+  .row { padding: 18px 20px; }
+  .row + .row { border-top: 1px dashed var(--border, rgba(120,110,90,.3)); }
+  h2 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .02em;
+  }
+  h2 small { font-weight: 400; color: var(--muted-foreground, #8a8272); margin-left: 8px; font-size: 12.5px; }
+  .pair { display: flex; gap: 14px; align-items: flex-start; }
+  figure { margin: 0; flex: 1 1 0; min-width: 0; }
+  .frame {
+    border: 1px solid var(--border, rgba(120,110,90,.35));
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+  img { display: block; width: 100%; height: auto; }
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    font-size: 12px;
+  }
+  .tag {
+    display: inline-block;
+    border-radius: 99px;
+    padding: 1px 9px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .before .tag { background: #efe3da; color: #8a4a3a; }
+  .after .tag { background: #e4ecdf; color: #3f6b4f; }
+  .mobileness { max-width: 46%; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+  <div class="row">
+    <h2>Card, front <small>centered content, framed card, flip hint, and a search icon in the sidebar input — now styled with Tailwind utilities</small></h2>
+    <div class="pair">
+      <figure class="before">
+        <figcaption><span class="tag">Before</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/previous/desktop.png" alt="before: card front"></div>
+      </figure>
+      <figure class="after">
+        <figcaption><span class="tag">After</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/tailwind/desktop-front.png" alt="after: card front"></div>
+      </figure>
+    </div>
+  </div>
+
+  <div class="row">
+    <h2>Card, back <small>answer centered and larger; grade buttons carry check / cross icons</small></h2>
+    <div class="pair">
+      <figure class="before">
+        <figcaption><span class="tag">Before</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/previous/desktop-back.png" alt="before: card back"></div>
+      </figure>
+      <figure class="after">
+        <figcaption><span class="tag">After</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/tailwind/desktop-back.png" alt="after: card back"></div>
+      </figure>
+    </div>
+  </div>
+
+  <div class="row">
+    <h2>Phone <small>card first, filters below</small></h2>
+    <div class="pair">
+      <figure class="before mobileness">
+        <figcaption><span class="tag">Before</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/previous/mobile.png" alt="before: phone"></div>
+      </figure>
+      <figure class="after mobileness">
+        <figcaption><span class="tag">After</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/tailwind/mobile-front.png" alt="after: phone"></div>
+      </figure>
+    </div>
+  </div>
+
+  <div class="row">
+    <h2>Chapter picker <small>filter input with search icon; dialog enters on a spring</small></h2>
+    <div class="pair">
+      <figure class="before">
+        <figcaption><span class="tag">Before</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/previous/dialog.png" alt="before: chapter dialog"></div>
+      </figure>
+      <figure class="after">
+        <figcaption><span class="tag">After</span></figcaption>
+        <div class="frame"><img src="/home/timo/.t3/worktrees/chinese-flashcards/t3-7128a0fc/ui/tailwind/dialog.png" alt="after: chapter dialog"></div>
+      </figure>
+    </div>
+  </div>
+
+</body>
+</html>
