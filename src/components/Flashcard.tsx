@@ -1,5 +1,12 @@
-import { useRef, type ReactNode } from "react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "motion/react";
+import type { ReactNode } from "react";
 import type { Card } from "../lib/srs";
+import { cn } from "../lib/cn";
 
 function renderSentence(sentence: string, term: string) {
   if (!term) return <span>{sentence}</span>;
@@ -13,13 +20,30 @@ function renderSentence(sentence: string, term: string) {
       break;
     }
     if (i > 0) parts.push(<span key={key++}>{rest.slice(0, i)}</span>);
-    parts.push(<mark key={key++}>{term}</mark>);
+    parts.push(
+      <mark key={key++} className="sentence-mark">
+        {term}
+      </mark>,
+    );
     rest = rest.slice(i + term.length);
   }
   return <span>{parts}</span>;
 }
 
-const MAX_TILT = 6;
+const FLIP_TRANSITION = { duration: 0.5, ease: [0.2, 0.7, 0.3, 1.05] as const };
+const MAX_TILT = 12;
+
+const face =
+  "relative col-start-1 row-start-1 flex min-h-[380px] w-full flex-col " +
+  "items-center justify-center gap-4 rounded-panel border border-line-strong " +
+  "bg-card px-6 py-7 text-center shadow-soft backface-hidden " +
+  "max-sm:min-h-[320px] sm:px-10 " +
+  "after:pointer-events-none after:absolute after:inset-2 " +
+  "after:rounded-xl after:border after:border-line";
+
+const chip =
+  "inline-flex rounded-full border border-accent/25 bg-accent/10 px-3.5 py-1 " +
+  "font-serif text-[0.85rem] tracking-[0.06em] text-accent-deep";
 
 export default function Flashcard({
   card,
@@ -36,36 +60,43 @@ export default function Flashcard({
   enterDir: 1 | -1;
   flash: "good" | "bad" | null;
 }) {
-  const rootRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const springX = useSpring(tiltX, { stiffness: 180, damping: 22 });
+  const springY = useSpring(tiltY, { stiffness: 180, damping: 22 });
 
-  function onPointerMove(e: React.PointerEvent) {
-    if (e.pointerType !== "mouse") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const el = rootRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse" || reduce) return;
+    const r = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.setProperty("--ry", `${(px * MAX_TILT * 2).toFixed(2)}deg`);
-    el.style.setProperty("--rx", `${(-py * MAX_TILT * 2).toFixed(2)}deg`);
+    tiltY.set(px * MAX_TILT);
+    tiltX.set(-py * MAX_TILT);
   }
 
   function onPointerLeave() {
-    const el = rootRef.current;
-    if (!el) return;
-    el.style.setProperty("--rx", "0deg");
-    el.style.setProperty("--ry", "0deg");
+    tiltX.set(0);
+    tiltY.set(0);
   }
+
+  const flashRing =
+    flash === "good"
+      ? "ring-[3px] ring-success/50 border-success"
+      : flash === "bad"
+        ? "ring-[3px] ring-accent/40 border-accent"
+        : "";
 
   return (
     <div
-      ref={rootRef}
-      className="flip"
+      className={cn(
+        "cursor-pointer rounded-panel [perspective:1400px] select-none",
+        flashRing,
+      )}
       onClick={onFlip}
       role="button"
       tabIndex={0}
       aria-label={flipped ? "切回題目" : "翻面看答案"}
-      data-flash={flash ?? undefined}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -75,30 +106,48 @@ export default function Flashcard({
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
     >
-      <div className="flip-tilt">
-        <div
+      <motion.div
+        style={{ rotateX: springX, rotateY: springY }}
+        className="grid [transform-style:preserve-3d]"
+      >
+        {/* keyed remount replays the deal-in on every card change */}
+        <motion.div
           key={cardKey}
-          className={`flip-inner${flipped ? " is-flipped" : ""}`}
-          data-dir={enterDir}
+          initial={{ opacity: 0, x: reduce ? 0 : enterDir * 32 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="grid [transform-style:preserve-3d]"
         >
-          <div className="flip-face flip-front card" aria-hidden={flipped}>
-            <div className="card-chapter">{card.chapter}</div>
-            <p className="sentence">
-              {renderSentence(card.sentence, card.term)}
-            </p>
-          </div>
-          <div
-            className="flip-face flip-back card"
-            aria-hidden={!flipped}
-            aria-live="polite"
+          <motion.div
+            animate={{ rotateY: flipped ? 180 : 0 }}
+            transition={reduce ? { duration: 0 } : FLIP_TRANSITION}
+            className="grid [transform-style:preserve-3d]"
           >
-            <div className="card-chapter">{card.chapter}</div>
-            <p className="term">{card.term}</p>
-            <p className="answer">{card.answer}</p>
-          </div>
-        </div>
-      </div>
+            <div className={face} aria-hidden={flipped}>
+              <div className={chip}>{card.chapter}</div>
+              <p className="max-w-[21em] font-serif text-[clamp(1.5rem,4.2vw,2.05rem)] font-semibold leading-[1.9] [text-wrap:balance]">
+                {renderSentence(card.sentence, card.term)}
+              </p>
+              <span className="absolute inset-x-0 bottom-4 indent-[0.3em] text-center font-sans text-[0.72rem] tracking-[0.3em] text-faint">
+                點按翻面
+              </span>
+            </div>
+            <div
+              className={cn(face, "rotate-y-180")}
+              aria-hidden={!flipped}
+              aria-live="polite"
+            >
+              <div className={chip}>{card.chapter}</div>
+              <p className="font-serif text-[clamp(2.4rem,8vw,3.2rem)] font-black tracking-[0.06em] text-accent">
+                {card.term}
+              </p>
+              <p className="max-w-[24em] font-serif text-[clamp(1.15rem,3.8vw,1.4rem)] leading-[1.9]">
+                {card.answer}
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
-
