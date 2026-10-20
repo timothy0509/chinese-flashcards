@@ -53,3 +53,18 @@ export function shuffle<T>(list: T[]): T[] {
   }
   return out;
 }
+
+/**
+ * Session queue helper. The current card is queue[0]; `rest` is everything
+ * after it. A failed card goes back `gap` positions so the learner must
+ * recall it again after spacing, not immediately. A remembered card is
+ * simply dropped because SM-2 already rescheduled it.
+ */
+export function requeueAfterFail(
+  rest: string[],
+  id: string,
+  gap = 4,
+): string[] {
+  const at = Math.max(0, Math.min(gap, rest.length));
+  return [...rest.slice(0, at), id, ...rest.slice(at)];
+}

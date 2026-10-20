@@ -8,6 +8,28 @@ import type { ReactNode } from "react";
 import type { Card } from "../lib/srs";
 import { cn } from "../lib/cn";
 
+function renderBlanked(sentence: string, term: string) {
+  if (!term || !sentence.includes(term)) return <span>{sentence}</span>;
+  const chunks = sentence.split(term);
+  const parts: ReactNode[] = [];
+  let key = 0;
+  chunks.forEach((chunk, i) => {
+    parts.push(<span key={key++}>{chunk}</span>);
+    if (i < chunks.length - 1) {
+      parts.push(
+        <span
+          key={key++}
+          aria-hidden="true"
+          className="mx-1 inline-block min-w-[2.2em] border-b-2 border-accent text-center font-black text-accent"
+        >
+          ？
+        </span>,
+      );
+    }
+  });
+  return <span>{parts}</span>;
+}
+
 function renderSentence(sentence: string, term: string) {
   if (!term) return <span>{sentence}</span>;
   const parts: ReactNode[] = [];
@@ -52,6 +74,7 @@ export default function Flashcard({
   cardKey,
   enterDir,
   flash,
+  direction,
 }: {
   card: Card;
   flipped: boolean;
@@ -59,6 +82,7 @@ export default function Flashcard({
   cardKey: string;
   enterDir: 1 | -1;
   flash: "good" | "bad" | null;
+  direction: "forward" | "reverse";
 }) {
   const reduce = useReducedMotion();
   const tiltX = useMotionValue(0);
@@ -125,11 +149,30 @@ export default function Flashcard({
           >
             <div className={face} aria-hidden={flipped}>
               <div className={chip}>{card.chapter}</div>
-              <p className="max-w-[21em] font-serif text-[clamp(1.5rem,4.2vw,2.05rem)] font-semibold leading-[1.9] [text-wrap:balance]">
-                {renderSentence(card.sentence, card.term)}
-              </p>
+              {direction === "forward" ? (
+                <>
+                  <p className="m-0 font-sans text-[0.78rem] tracking-[0.2em] text-muted">
+                    這個字在句中是什麼意思？
+                  </p>
+                  <p className="m-0 max-w-[21em] font-serif text-[clamp(1.5rem,4.2vw,2.05rem)] font-semibold leading-[1.9] [text-wrap:balance]">
+                    {renderSentence(card.sentence, card.term)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="m-0 font-sans text-[0.78rem] tracking-[0.2em] text-muted">
+                    哪個字是這個意思？
+                  </p>
+                  <p className="m-0 font-serif text-[clamp(2rem,7vw,2.8rem)] font-black tracking-[0.04em] text-accent">
+                    {card.answer}
+                  </p>
+                  <p className="m-0 max-w-[21em] font-serif text-[clamp(1.2rem,3.8vw,1.6rem)] leading-[1.9] [text-wrap:balance]">
+                    {renderBlanked(card.sentence, card.term)}
+                  </p>
+                </>
+              )}
               <span className="absolute inset-x-0 bottom-4 indent-[0.3em] text-center font-sans text-[0.72rem] tracking-[0.3em] text-faint">
-                點按翻面
+                心中答完再點按翻面
               </span>
             </div>
             <div
@@ -138,10 +181,13 @@ export default function Flashcard({
               aria-live="polite"
             >
               <div className={chip}>{card.chapter}</div>
-              <p className="font-serif text-[clamp(2.4rem,8vw,3.2rem)] font-black tracking-[0.06em] text-accent">
+              <p className="m-0 max-w-[22em] font-serif text-[clamp(1rem,3.4vw,1.2rem)] leading-[1.9] text-muted [text-wrap:balance]">
+                {renderSentence(card.sentence, card.term)}
+              </p>
+              <p className="m-0 font-serif text-[clamp(2.4rem,8vw,3.2rem)] font-black tracking-[0.06em] text-accent">
                 {card.term}
               </p>
-              <p className="max-w-[24em] font-serif text-[clamp(1.15rem,3.8vw,1.4rem)] leading-[1.9]">
+              <p className="m-0 max-w-[24em] font-serif text-[clamp(1.15rem,3.8vw,1.4rem)] leading-[1.9]">
                 {card.answer}
               </p>
             </div>
