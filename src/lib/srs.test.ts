@@ -5,6 +5,7 @@ import {
   initialProgress,
   isDue,
   isMastered,
+  requeueAfterFail,
   shuffle,
   type Progress,
 } from "./srs";
@@ -90,5 +91,27 @@ describe("shuffle", () => {
     expect(out).not.toBe(input);
     expect([...out].sort((a, b) => a - b)).toEqual(input);
     expect(input).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe("requeueAfterFail", () => {
+  it("reinserts a failed card 4 positions later", () => {
+    expect(
+      requeueAfterFail(["b", "c", "d", "e", "f", "g"], "a"),
+    ).toEqual(["b", "c", "d", "e", "a", "f", "g"]);
+  });
+
+  it("appends at the end when fewer cards remain than the gap", () => {
+    expect(requeueAfterFail(["b", "c"], "a")).toEqual(["b", "c", "a"]);
+  });
+
+  it("keeps a lone failed card in the queue for immediate retry", () => {
+    expect(requeueAfterFail([], "a")).toEqual(["a"]);
+  });
+
+  it("leaves the input array alone", () => {
+    const rest = ["b", "c"];
+    requeueAfterFail(rest, "a");
+    expect(rest).toEqual(["b", "c"]);
   });
 });
