@@ -5,6 +5,8 @@ export interface Card {
   sentence: string;
   term: string;
   answer: string;
+  /** 0-based index of which occurrence of term to highlight, when term appears multiple times. Omitted = highlight all. */
+  occurrence?: number;
 }
 
 export interface Progress {
