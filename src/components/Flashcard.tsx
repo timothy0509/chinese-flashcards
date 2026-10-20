@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import type { Card } from "../lib/srs";
 import { cn } from "../lib/cn";
 
-function renderBlanked(sentence: string, term: string) {
+function renderBlanked(sentence: string, term: string, occurrence?: number) {
   if (!term || !sentence.includes(term)) return <span>{sentence}</span>;
   const chunks = sentence.split(term);
   const parts: ReactNode[] = [];
@@ -16,25 +16,35 @@ function renderBlanked(sentence: string, term: string) {
   chunks.forEach((chunk, i) => {
     parts.push(<span key={key++}>{chunk}</span>);
     if (i < chunks.length - 1) {
+      const isTarget = occurrence === undefined || occurrence === i;
       parts.push(
-        <span
-          key={key++}
-          aria-hidden="true"
-          className="mx-1 inline-block min-w-[2.2em] border-b-2 border-accent text-center font-black text-accent"
-        >
-          ？
-        </span>,
+        isTarget ? (
+          <span
+            key={key++}
+            aria-hidden="true"
+            className="mx-1 inline-block min-w-[2.2em] border-b-2 border-accent text-center font-black text-accent"
+          >
+            ？
+          </span>
+        ) : (
+          <span key={key++}>{term}</span>
+        ),
       );
     }
   });
   return <span>{parts}</span>;
 }
 
-function renderSentence(sentence: string, term: string) {
+function renderSentence(
+  sentence: string,
+  term: string,
+  occurrence?: number,
+) {
   if (!term) return <span>{sentence}</span>;
   const parts: ReactNode[] = [];
   let rest = sentence;
   let key = 0;
+  let seen = 0;
   for (;;) {
     const i = rest.indexOf(term);
     if (i === -1) {
@@ -42,11 +52,16 @@ function renderSentence(sentence: string, term: string) {
       break;
     }
     if (i > 0) parts.push(<span key={key++}>{rest.slice(0, i)}</span>);
-    parts.push(
-      <mark key={key++} className="sentence-mark">
-        {term}
-      </mark>,
-    );
+    if (occurrence === undefined || seen === occurrence) {
+      parts.push(
+        <mark key={key++} className="sentence-mark">
+          {term}
+        </mark>,
+      );
+    } else {
+      parts.push(<span key={key++}>{term}</span>);
+    }
+    seen += 1;
     rest = rest.slice(i + term.length);
   }
   return <span>{parts}</span>;
@@ -155,7 +170,7 @@ export default function Flashcard({
                     這個字在句中是什麼意思？
                   </p>
                   <p className="m-0 max-w-[21em] font-serif text-[clamp(1.5rem,4.2vw,2.05rem)] font-semibold leading-[1.9] [text-wrap:balance]">
-                    {renderSentence(card.sentence, card.term)}
+                    {renderSentence(card.sentence, card.term, card.occurrence)}
                   </p>
                 </>
               ) : (
@@ -167,7 +182,7 @@ export default function Flashcard({
                     {card.answer}
                   </p>
                   <p className="m-0 max-w-[21em] font-serif text-[clamp(1.2rem,3.8vw,1.6rem)] leading-[1.9] [text-wrap:balance]">
-                    {renderBlanked(card.sentence, card.term)}
+                    {renderBlanked(card.sentence, card.term, card.occurrence)}
                   </p>
                 </>
               )}
@@ -182,7 +197,7 @@ export default function Flashcard({
             >
               <div className={chip}>{card.chapter}</div>
               <p className="m-0 max-w-[22em] font-serif text-[clamp(1rem,3.4vw,1.2rem)] leading-[1.9] text-muted [text-wrap:balance]">
-                {renderSentence(card.sentence, card.term)}
+                {renderSentence(card.sentence, card.term, card.occurrence)}
               </p>
               <p className="m-0 font-serif text-[clamp(2.4rem,8vw,3.2rem)] font-black tracking-[0.06em] text-accent">
                 {card.term}

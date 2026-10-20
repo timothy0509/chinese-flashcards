@@ -43,6 +43,21 @@ for (let i = 0; i < src.length; i++) {
     errors.push(`line ${i + 1}: empty field`);
     continue;
   }
+  // Which occurrence of term was wrapped in **? The ** markers are the
+  // author's way of pointing at one specific character when the term
+  // appears multiple times (e.g. 未始遊 vs 乎始). Count how many times
+  // the term occurs in the text before the **term** marker. If the
+  // author bolded the term more than once, that means highlight all,
+  // so leave occurrence undefined.
+  let occurrence = undefined;
+  const bolded = [...left.matchAll(/\*\*(.+?)\*\*/g)];
+  if (bolded.length === 1 && bolded[0][1].trim() === term) {
+    const markerStart = left.indexOf(bolded[0][0]);
+    const before = left.slice(0, markerStart).replaceAll("**", "");
+    const countBefore = before.split(term).length - 1;
+    const total = sentence.split(term).length - 1;
+    if (total > 1) occurrence = countBefore;
+  }
   const chapterIndex = chapters.length - 1;
   cards.push({
     id: `${chapterIndex + 1}-${num}`,
@@ -51,6 +66,7 @@ for (let i = 0; i < src.length; i++) {
     sentence,
     term,
     answer,
+    ...(occurrence !== undefined ? { occurrence } : {}),
   });
   chapters[chapters.length - 1].count += 1;
 }
